@@ -27,8 +27,15 @@ const (
 	Llongcolor                    // color will start [info] end of line
 	Lshortcolor                   // color only include [info]
 	LstdFlags     = Ldate | Ltime // initial values for the standard logger
-	Ldefault      = Llevel | LstdFlags | Lshortfile | Llongcolor
+	//Ldefault      = Llevel | LstdFlags | Lshortfile | Llongcolor
 ) // [prefix][time][level][module][shortfile|longfile]
+
+func Ldefault() int {
+	if runtime.GOOS == "windows" {
+		return Llevel | LstdFlags | Lshortfile
+	}
+	return Llevel | LstdFlags | Lshortfile | Llongcolor
+}
 
 const (
 	Ldebug = iota
@@ -111,7 +118,7 @@ func New(out io.Writer, prefix string, flag int) *Logger {
 	return &Logger{out: out, prefix: prefix, Level: 1, flag: flag}
 }
 
-var Std = New(os.Stderr, "", Ldefault)
+var Std = New(os.Stderr, "", Ldefault())
 
 // Cheap integer to fixed-width decimal ASCII.  Give a negative width to avoid zero-padding.
 // Knows the buffer has capacity.
