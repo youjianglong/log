@@ -400,6 +400,17 @@ func (l *Logger) Flags() int {
 	return l.flag
 }
 
+func RmColorFlags(flag int) int {
+	// for un std out, it should not show color since almost them don't support
+	if flag&Llongcolor != 0 {
+		flag = flag ^ Llongcolor
+	}
+	if flag&Lshortcolor != 0 {
+		flag = flag ^ Lshortcolor
+	}
+	return flag
+}
+
 // SetFlags sets the output flags for the logger.
 func (l *Logger) SetFlags(flag int) {
 	l.mu.Lock()
