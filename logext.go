@@ -38,12 +38,14 @@ func Ldefault() int {
 }
 
 const (
-	Ldebug = iota
+	Lall = iota
+	Ldebug
 	Linfo
 	Lwarn
 	Lerror
 	Lpanic
 	Lfatal
+	Lnone
 )
 
 const (
