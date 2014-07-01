@@ -88,11 +88,11 @@ func SetLevels(lvs []string) {
 
 var colors = []int{
 	ForeCyan,
-	ForeBlue,
 	ForeGreen,
 	ForeYellow,
 	ForeRed,
 	ForePurple,
+	ForeBlue,
 }
 
 // MUST called before all logs
@@ -506,83 +506,119 @@ func OutputLevel() int {
 // Print calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Print.
 func Print(v ...interface{}) {
-	Std.Print(v...)
+	Std.Output("", Linfo, 2, fmt.Sprintln(v...))
 }
 
 // Printf calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Printf.
 func Printf(format string, v ...interface{}) {
-	Std.Printf(format, v...)
+	Std.Output("", Linfo, 2, fmt.Sprintf(format, v...))
 }
 
 // Println calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Println.
 func Println(v ...interface{}) {
-	Std.Println(v...)
+	Std.Output("", Linfo, 2, fmt.Sprintln(v...))
 }
 
 // -----------------------------------------
 
 func Debugf(format string, v ...interface{}) {
-	Std.Debugf(format, v...)
+	if Ldebug < Std.Level {
+		return
+	}
+	Std.Output("", Ldebug, 2, fmt.Sprintf(format, v...))
 }
 
 func Debug(v ...interface{}) {
-	Std.Debug(v...)
+	if Ldebug < Std.Level {
+		return
+	}
+	Std.Output("", Ldebug, 2, fmt.Sprintln(v...))
 }
 
 // -----------------------------------------
 
 func Infof(format string, v ...interface{}) {
-	Std.Infof(format, v...)
+	if Linfo < Std.Level {
+		return
+	}
+	Std.Output("", Linfo, 2, fmt.Sprintf(format, v...))
 }
 
 func Info(v ...interface{}) {
-	Std.Info(v...)
+	if Linfo < Std.Level {
+		return
+	}
+	Std.Output("", Linfo, 2, fmt.Sprintln(v...))
 }
 
 // -----------------------------------------
 
 func Warnf(format string, v ...interface{}) {
-	Std.Warnf(format, v...)
+	if Lwarn < Std.Level {
+		return
+	}
+	Std.Output("", Lwarn, 2, fmt.Sprintf(format, v...))
 }
 
 func Warn(v ...interface{}) {
-	Std.Warn(v...)
+	if Lwarn < Std.Level {
+		return
+	}
+	Std.Output("", Lwarn, 2, fmt.Sprintln(v...))
 }
 
 // -----------------------------------------
 
 func Errorf(format string, v ...interface{}) {
-	Std.Errorf(format, v...)
+	if Lerror < Std.Level {
+		return
+	}
+	Std.Output("", Lerror, 2, fmt.Sprintf(format, v...))
 }
 
 func Error(v ...interface{}) {
-	Std.Error(v...)
+	if Lerror < Std.Level {
+		return
+	}
+	Std.Output("", Lerror, 2, fmt.Sprintln(v...))
 }
 
 // -----------------------------------------
 
 // Fatal is equivalent to Print() followed by a call to os.Exit(1).
 func Fatal(v ...interface{}) {
-	Std.Fatal(v...)
+	if Lfatal < Std.Level {
+		return
+	}
+	Std.Output("", Lfatal, 2, fmt.Sprintln(v...))
 }
 
 // Fatalf is equivalent to Printf() followed by a call to os.Exit(1).
 func Fatalf(format string, v ...interface{}) {
-	Std.Fatalf(format, v...)
+	if Lfatal < Std.Level {
+		return
+	}
+	Std.Output("", Lfatal, 2, fmt.Sprintf(format, v...))
 }
 
 // -----------------------------------------
 
 // Panic is equivalent to Print() followed by a call to panic().
 func Panic(v ...interface{}) {
-	Std.Panic(v...)
+	if Lpanic < Std.Level {
+		return
+	}
+	Std.Output("", Lpanic, 2, fmt.Sprintln(v...))
 }
 
 // Panicf is equivalent to Printf() followed by a call to panic().
 func Panicf(format string, v ...interface{}) {
-	Std.Panicf(format, v...)
+	if Lpanic < Std.Level {
+		return
+	}
+	Std.Output("", Lpanic, 2, fmt.Sprintf(format, v...))
 }
 
 // -----------------------------------------
