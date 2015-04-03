@@ -466,6 +466,11 @@ func (l *Logger) SetOutput(w io.Writer) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
 	l.out = w
+	if w != os.Stdout {
+		fmt.Println("hssss", l.flag)
+		l.flag = RmColorFlags(l.flag)
+		fmt.Println(l.flag)
+	}
 }
 
 // SetOutput sets the output destination for the standard logger.

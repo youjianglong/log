@@ -30,3 +30,7 @@ func (w *DBWriter) Write(p []byte) (n int, err error) {
 	}
 	return
 }
+
+func (w *DBWriter) Close() {
+	w.stmt.Close()
+}
