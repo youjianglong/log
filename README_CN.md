@@ -1,6 +1,8 @@
 ## log
 [![GoDoc](https://godoc.org/github.com/lunny/log?status.png)](https://godoc.org/github.com/lunny/log)
 
+[English](https://github.com/lunny/log/blob/master/README.md)
+
 # 安装
 
 ```
