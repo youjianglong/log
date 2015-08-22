@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"sync"
 	"time"
 )
 
@@ -37,6 +38,7 @@ type Files struct {
 	FileOptions
 	f          *os.File
 	lastFormat string
+	lock sync.Mutex
 }
 
 type FileOptions struct {
@@ -66,20 +68,25 @@ func (f *Files) getFile() (*os.File, error) {
 	if f.f == nil {
 		f.lastFormat = time.Now().Format(f.ByType.Format())
 		var err error
-		f.f, err = os.Create(filepath.Join(f.Dir, f.lastFormat+".log"))
+		f.f, err = os.OpenFile(filepath.Join(f.Dir, f.lastFormat+".log"), 
+			os.O_CREATE | os.O_APPEND | os.O_WRONLY, os.ModePerm)
 		return f.f, err
 	}
 	if f.lastFormat != time.Now().Format(f.ByType.Format()) {
 		f.f.Close()
 		f.lastFormat = time.Now().Format(f.ByType.Format())
 		var err error
-		f.f, err = os.Create(filepath.Join(f.Dir, f.lastFormat+".log"))
+		f.f, err = os.OpenFile(filepath.Join(f.Dir, f.lastFormat+".log"), 
+			os.O_CREATE | os.O_APPEND | os.O_WRONLY, os.ModePerm)
 		return f.f, err
 	}
 	return f.f, nil
 }
 
 func (f *Files) Write(bs []byte) (int, error) {
+	f.lock.Lock()
+	defer f.lock.Unlock()
+
 	w, err := f.getFile()
 	if err != nil {
 		return 0, err
