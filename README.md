@@ -14,6 +14,7 @@ go get github.com/lunny/log
 * Add color support for unix console
 * Implemented dbwriter to save log to database
 * Implemented FileWriter to save log to file by date or time.
+* Location configuration
 
 # Example
 

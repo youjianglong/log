@@ -37,6 +37,10 @@ func Ldefault() int {
 	return Llevel | LstdFlags | Lshortfile | Llongcolor
 }
 
+func Version() string {
+	return "0.2.0.1121"
+}
+
 const (
 	Lall = iota
 )
@@ -112,6 +116,7 @@ type Logger struct {
 	out        io.Writer    // destination for output
 	buf        bytes.Buffer // for accumulating text to write
 	levelStats [6]int64
+	loc        *time.Location
 }
 
 // New creates a new Logger.   The out variable sets the
@@ -119,7 +124,7 @@ type Logger struct {
 // The prefix appears at the beginning of each generated log line.
 // The flag argument defines the logging properties.
 func New(out io.Writer, prefix string, flag int) *Logger {
-	return &Logger{out: out, prefix: prefix, Level: 1, flag: flag}
+	return &Logger{out: out, prefix: prefix, Level: 1, flag: flag, loc: time.Local}
 }
 
 var Std = New(os.Stderr, "", Ldefault())
@@ -241,7 +246,7 @@ func (l *Logger) Output(reqId string, lvl int, calldepth int, s string) error {
 	if lvl < l.Level {
 		return nil
 	}
-	now := time.Now() // get this early.
+	now := time.Now().In(l.loc) // get this early.
 	var file string
 	var line int
 	l.mu.Lock()
@@ -394,6 +399,14 @@ func RmColorFlags(flag int) int {
 	return flag
 }
 
+func (l *Logger) Location() *time.Location {
+	return l.loc
+}
+
+func (l *Logger) SetLocation(loc *time.Location) {
+	l.loc = loc
+}
+
 // SetFlags sets the output flags for the logger.
 func (l *Logger) SetFlags(flag int) {
 	l.mu.Lock()
@@ -438,6 +451,14 @@ func (l *Logger) SetOutput(w io.Writer) {
 // SetOutput sets the output destination for the standard logger.
 func SetOutput(w io.Writer) {
 	Std.SetOutput(w)
+}
+
+func SetLocation(loc *time.Location) {
+	Std.SetLocation(loc)
+}
+
+func Location() *time.Location {
+	return Std.Location()
 }
 
 // Flags returns the output flags for the standard logger.

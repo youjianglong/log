@@ -14,6 +14,7 @@ go get github.com/lunny/log
 * 对unix增加控制台颜色支持
 * 实现了保存log到数据库支持
 * 实现了保存log到按日期的文件支持
+* 实现了设置日期的地区
 
 # 例子
 
