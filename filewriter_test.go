@@ -1,11 +1,16 @@
 package log
 
 import (
+	"os"
 	"testing"
 )
 
 func TestFiles(t *testing.T) {
-	w := NewFileWriter(FileOptions{ByType:ByDay})
+	os.Remove("./logs")
+	w := NewFileWriter(FileOptions{
+		ByType: ByDay,
+		Dir:    "./logs",
+	})
 	Std.SetOutput(w)
 	Std.SetFlags(Std.Flags() | ^Llongcolor | ^Lshortcolor)
 	Info("test")

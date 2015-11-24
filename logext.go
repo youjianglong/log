@@ -124,7 +124,11 @@ type Logger struct {
 // The prefix appears at the beginning of each generated log line.
 // The flag argument defines the logging properties.
 func New(out io.Writer, prefix string, flag int) *Logger {
-	return &Logger{out: out, prefix: prefix, Level: 1, flag: flag, loc: time.Local}
+	l := &Logger{out: out, prefix: prefix, Level: 1, flag: flag, loc: time.Local}
+	if out != os.Stdout {
+		l.flag = RmColorFlags(l.flag)
+	}
+	return l
 }
 
 var Std = New(os.Stderr, "", Ldefault())
@@ -411,6 +415,9 @@ func (l *Logger) SetLocation(loc *time.Location) {
 func (l *Logger) SetFlags(flag int) {
 	l.mu.Lock()
 	defer l.mu.Unlock()
+	if l.out != os.Stdout {
+		flag = RmColorFlags(flag)
+	}
 	l.flag = flag
 }
 
