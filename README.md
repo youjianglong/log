@@ -42,3 +42,8 @@ log.Std.SetOutput(w)
 # About
 
 This repo is an extension of Golang log.
+
+# LICENSE
+
+ BSD License
+ [http://creativecommons.org/licenses/BSD/](http://creativecommons.org/licenses/BSD/)

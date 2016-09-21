@@ -45,3 +45,8 @@ log.Std.SetOutput(w)
 # 关于
 
 本 Log 是在 golang 的 log 之上的扩展
+
+# LICENSE
+
+ BSD License
+ [http://creativecommons.org/licenses/BSD/](http://creativecommons.org/licenses/BSD/)
