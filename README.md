@@ -1,12 +1,12 @@
 ## log
-[![GoDoc](https://godoc.org/github.com/lunny/log?status.png)](https://godoc.org/github.com/lunny/log)
+[![GoDoc](https://godoc.org/github.com/youjianglong/log?status.png)](https://godoc.org/github.com/youjianglong/log)
 
-[简体中文](https://github.com/lunny/log/blob/master/README_CN.md)
+[简体中文](https://github.com/youjianglong/log/blob/master/README_CN.md)
 
 # Installation
 
 ```
-go get github.com/lunny/log
+go get github.com/youjianglong/log
 ```
 
 # Features

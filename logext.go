@@ -28,8 +28,10 @@ const (
 	Lshortcolor                   // color only include [info]
 	LstdFlags     = Ldate | Ltime // initial values for the standard logger
 	//Ldefault      = Llevel | LstdFlags | Lshortfile | Llongcolor
-) // [prefix][time][level][module][shortfile|longfile]
+)
 
+// Ldefault default log flags
+// [prefix][time][level][module][shortfile|longfile]
 func Ldefault() int {
 	if runtime.GOOS == "windows" {
 		return Llevel | LstdFlags | Lshortfile
@@ -37,8 +39,9 @@ func Ldefault() int {
 	return Llevel | LstdFlags | Lshortfile | Llongcolor
 }
 
+// Version this library version
 func Version() string {
-	return "0.2.0.1121"
+	return "0.3.0.0611"
 }
 
 const (
@@ -85,7 +88,7 @@ var levels = []string{
 	"[Fatal]",
 }
 
-// MUST called before all logs
+// SetLevels MUST called before all logs
 func SetLevels(lvs []string) {
 	levels = lvs
 }
@@ -99,7 +102,7 @@ var colors = []int{
 	ForeBlue,
 }
 
-// MUST called before all logs
+//SetColors MUST called before all logs
 func SetColors(cls []int) {
 	colors = cls
 }
@@ -109,29 +112,36 @@ func SetColors(cls []int) {
 // the Writer's Write method.  A Logger can be used simultaneously from
 // multiple goroutines; it guarantees to serialize access to the Writer.
 type Logger struct {
-	mu         sync.Mutex // ensures atomic writes; protects the following fields
-	prefix     string     // prefix to write at beginning of each line
-	flag       int        // properties
-	Level      int
-	out        io.Writer    // destination for output
-	buf        bytes.Buffer // for accumulating text to write
-	levelStats [6]int64
-	loc        *time.Location
+	mu            sync.Mutex // ensures atomic writes; protects the following fields
+	prefix        string     // prefix to write at beginning of each line
+	flag          int        // properties
+	Level         int
+	out           io.Writer    // destination for output
+	buf           bytes.Buffer // for accumulating text to write
+	levelStats    [6]int64
+	loc           *time.Location
+	skipCallDepth int
 }
 
 // New creates a new Logger.   The out variable sets the
 // destination to which log data will be written.
 // The prefix appears at the beginning of each generated log line.
 // The flag argument defines the logging properties.
-func New(out io.Writer, prefix string, flag int) *Logger {
-	l := &Logger{out: out, prefix: prefix, Level: 1, flag: flag, loc: time.Local}
+func New(out io.Writer, prefix string, flag int, skipCallDepth ...int) *Logger {
+	l := &Logger{out: out, prefix: prefix, Level: Linfo, flag: flag, loc: time.Local}
 	if out != os.Stdout {
 		l.flag = RmColorFlags(l.flag)
+	}
+	if len(skipCallDepth) > 0 {
+		l.skipCallDepth = skipCallDepth[0]
+	} else {
+		l.skipCallDepth = 2
 	}
 	return l
 }
 
-var Std = New(os.Stderr, "", Ldefault())
+// Std standard logger
+var Std = New(os.Stderr, "", Ldefault(), 3)
 
 // Cheap integer to fixed-width decimal ASCII.  Give a negative width to avoid zero-padding.
 // Knows the buffer has capacity.
@@ -285,88 +295,102 @@ func (l *Logger) Output(reqId string, lvl int, calldepth int, s string) error {
 // Printf calls l.Output to print to the logger.
 // Arguments are handled in the manner of fmt.Printf.
 func (l *Logger) Printf(format string, v ...interface{}) {
-	l.Output("", Linfo, 2, fmt.Sprintf(format, v...))
+	l.Output("", Linfo, l.skipCallDepth, fmt.Sprintf(format, v...))
 }
 
 // Print calls l.Output to print to the logger.
 // Arguments are handled in the manner of fmt.Print.
 func (l *Logger) Print(v ...interface{}) {
-	l.Output("", Linfo, 2, fmt.Sprint(v...))
+	l.Output("", Linfo, l.skipCallDepth, fmt.Sprint(v...))
 }
 
 // Println calls l.Output to print to the logger.
 // Arguments are handled in the manner of fmt.Println.
 func (l *Logger) Println(v ...interface{}) {
-	l.Output("", Linfo, 2, fmt.Sprintln(v...))
+	l.Output("", Linfo, l.skipCallDepth, fmt.Sprintln(v...))
 }
 
 // -----------------------------------------
 
 func (l *Logger) Debugf(format string, v ...interface{}) {
-	l.Output("", Ldebug, 2, fmt.Sprintf(format, v...))
+	l.Output("", Ldebug, l.skipCallDepth, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Debug(v ...interface{}) {
-	l.Output("", Ldebug, 2, fmt.Sprintln(v...))
+	l.Output("", Ldebug, l.skipCallDepth, fmt.Sprintln(v...))
 }
 
 // -----------------------------------------
 func (l *Logger) Infof(format string, v ...interface{}) {
-	l.Output("", Linfo, 2, fmt.Sprintf(format, v...))
+	l.Output("", Linfo, l.skipCallDepth, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Info(v ...interface{}) {
-	l.Output("", Linfo, 2, fmt.Sprintln(v...))
+	l.Output("", Linfo, l.skipCallDepth, fmt.Sprintln(v...))
 }
 
 // -----------------------------------------
 func (l *Logger) Warnf(format string, v ...interface{}) {
-	l.Output("", Lwarn, 2, fmt.Sprintf(format, v...))
+	l.Output("", Lwarn, l.skipCallDepth, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Warn(v ...interface{}) {
-	l.Output("", Lwarn, 2, fmt.Sprintln(v...))
+	l.Output("", Lwarn, l.skipCallDepth, fmt.Sprintln(v...))
 }
 
 // -----------------------------------------
 
 func (l *Logger) Errorf(format string, v ...interface{}) {
-	l.Output("", Lerror, 2, fmt.Sprintf(format, v...))
+	l.Output("", Lerror, l.skipCallDepth, fmt.Sprintf(format, v...))
 }
 
 func (l *Logger) Error(v ...interface{}) {
-	l.Output("", Lerror, 2, fmt.Sprintln(v...))
+	l.Output("", Lerror, l.skipCallDepth, fmt.Sprintln(v...))
 }
 
 // -----------------------------------------
 
 func (l *Logger) Fatal(v ...interface{}) {
-	l.Output("", Lfatal, 2, fmt.Sprintln(v...))
+	l.Output("", Lfatal, l.skipCallDepth, fmt.Sprint(v...))
+	os.Exit(1)
+}
+
+// Fatalln is equivalent to l.Println() followed by a call to os.Exit(1).
+func (l *Logger) Fatalln(v ...interface{}) {
+	l.Output("", Lfatal, l.skipCallDepth, fmt.Sprintln(v...))
 	os.Exit(1)
 }
 
 // Fatalf is equivalent to l.Printf() followed by a call to os.Exit(1).
 func (l *Logger) Fatalf(format string, v ...interface{}) {
-	l.Output("", Lfatal, 2, fmt.Sprintf(format, v...))
+	l.Output("", Lfatal, l.skipCallDepth, fmt.Sprintf(format, v...))
 	os.Exit(1)
 }
 
 // -----------------------------------------
+
 // Panic is equivalent to l.Print() followed by a call to panic().
 func (l *Logger) Panic(v ...interface{}) {
-	s := fmt.Sprintln(v...)
-	l.Output("", Lpanic, 2, s)
+	s := fmt.Sprint(v...)
+	l.Output("", Lpanic, l.skipCallDepth, s)
 	panic(s)
+}
+
+// Panicln is equivalent to l.Println() followed by a call to panic().
+func (l *Logger) Panicln(v ...interface{}) {
+	l.Output("", Lfatal, l.skipCallDepth, fmt.Sprintln(v...))
+	os.Exit(1)
 }
 
 // Panicf is equivalent to l.Printf() followed by a call to panic().
 func (l *Logger) Panicf(format string, v ...interface{}) {
 	s := fmt.Sprintf(format, v...)
-	l.Output("", Lpanic, 2, s)
+	l.Output("", Lpanic, l.skipCallDepth, s)
 	panic(s)
 }
 
 // -----------------------------------------
+
 func (l *Logger) Stack(v ...interface{}) {
 	s := fmt.Sprint(v...)
 	s += "\n"
@@ -374,10 +398,11 @@ func (l *Logger) Stack(v ...interface{}) {
 	n := runtime.Stack(buf, true)
 	s += string(buf[:n])
 	s += "\n"
-	l.Output("", Lerror, 2, s)
+	l.Output("", Lerror, l.skipCallDepth, s)
 }
 
 // -----------------------------------------
+
 func (l *Logger) Stat() (stats []int64) {
 	l.mu.Lock()
 	v := l.levelStats
@@ -488,10 +513,12 @@ func SetPrefix(prefix string) {
 	Std.SetPrefix(prefix)
 }
 
+// SetOutputLevel sets the output log level for the standard logger.
 func SetOutputLevel(lvl int) {
 	Std.SetOutputLevel(lvl)
 }
 
+// OutputLevel returns the output log level for the standard logger.
 func OutputLevel() int {
 	return Std.OutputLevel()
 }
@@ -501,95 +528,99 @@ func OutputLevel() int {
 // Print calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Print.
 func Print(v ...interface{}) {
-	Std.Output("", Linfo, 2, fmt.Sprintln(v...))
+	Std.Print(v...)
 }
 
 // Printf calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Printf.
 func Printf(format string, v ...interface{}) {
-	Std.Output("", Linfo, 2, fmt.Sprintf(format, v...))
+	Std.Printf(format, v...)
 }
 
 // Println calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Println.
 func Println(v ...interface{}) {
-	Std.Output("", Linfo, 2, fmt.Sprintln(v...))
+	Std.Println(v...)
 }
 
 // -----------------------------------------
 
 func Debugf(format string, v ...interface{}) {
-	Std.Output("", Ldebug, 2, fmt.Sprintf(format, v...))
+	Std.Debugf(format, v...)
 }
 
 func Debug(v ...interface{}) {
-	Std.Output("", Ldebug, 2, fmt.Sprintln(v...))
+	Std.Debug(v...)
 }
 
 // -----------------------------------------
 
 func Infof(format string, v ...interface{}) {
-	Std.Output("", Linfo, 2, fmt.Sprintf(format, v...))
+	Std.Infof(format, v...)
 }
 
 func Info(v ...interface{}) {
-	Std.Output("", Linfo, 2, fmt.Sprintln(v...))
+	Std.Info(v...)
 }
 
 // -----------------------------------------
 
 func Warnf(format string, v ...interface{}) {
-	Std.Output("", Lwarn, 2, fmt.Sprintf(format, v...))
+	Std.Warnf(format, v...)
 }
 
 func Warn(v ...interface{}) {
-	Std.Output("", Lwarn, 2, fmt.Sprintln(v...))
+	Std.Warn(v...)
 }
 
 // -----------------------------------------
 
 func Errorf(format string, v ...interface{}) {
-	Std.Output("", Lerror, 2, fmt.Sprintf(format, v...))
+	Std.Errorf(format, v...)
 }
 
 func Error(v ...interface{}) {
-	Std.Output("", Lerror, 2, fmt.Sprintln(v...))
+	Std.Error(v...)
 }
 
 // -----------------------------------------
 
 // Fatal is equivalent to Print() followed by a call to os.Exit(1).
 func Fatal(v ...interface{}) {
-	Std.Output("", Lfatal, 2, fmt.Sprintln(v...))
+	Std.Fatal(v...)
+}
+
+// Fatalln is equivalent to Println() followed by a call to os.Exit(1).
+func Fatalln(v ...interface{}) {
+	Std.Fatalln(v...)
 }
 
 // Fatalf is equivalent to Printf() followed by a call to os.Exit(1).
 func Fatalf(format string, v ...interface{}) {
-	Std.Output("", Lfatal, 2, fmt.Sprintf(format, v...))
+	Std.Fatalf(format, v...)
 }
 
 // -----------------------------------------
 
 // Panic is equivalent to Print() followed by a call to panic().
 func Panic(v ...interface{}) {
-	Std.Output("", Lpanic, 2, fmt.Sprintln(v...))
+	Std.Panic(v...)
+}
+
+// Panicln is equivalent to Println() followed by a call to panic().
+func Panicln(v ...interface{}) {
+	Std.Panicln(v...)
 }
 
 // Panicf is equivalent to Printf() followed by a call to panic().
 func Panicf(format string, v ...interface{}) {
-	Std.Output("", Lpanic, 2, fmt.Sprintf(format, v...))
+	Std.Panicf(format, v...)
 }
 
 // -----------------------------------------
 
 func Stack(v ...interface{}) {
-	s := fmt.Sprint(v...)
-	s += "\n"
-	buf := make([]byte, 1024*1024)
-	n := runtime.Stack(buf, true)
-	s += string(buf[:n])
-	s += "\n"
-	Std.Output("", Lerror, 2, s)
+	Std.Stack(v...)
 }
 
 // -----------------------------------------
