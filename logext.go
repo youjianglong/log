@@ -140,8 +140,10 @@ func New(out io.Writer, prefix string, flag int, skipCallDepth ...int) *Logger {
 	return l
 }
 
+var std = New(os.Stderr, "", Ldefault(), 3)
+
 // Std standard logger
-var Std = New(os.Stderr, "", Ldefault(), 3)
+var Std = std.NewPrefix("")
 
 // Cheap integer to fixed-width decimal ASCII.  Give a negative width to avoid zero-padding.
 // Knows the buffer has capacity.
@@ -453,6 +455,14 @@ func (l *Logger) Prefix() string {
 	return l.prefix
 }
 
+// NewPrefix returns the logger with new prefix.
+func (l *Logger) NewPrefix(prefix string) *Logger {
+	nl := *l
+	nl.SetPrefix(prefix)
+	nl.skipCallDepth = 2
+	return &nl
+}
+
 // SetPrefix sets the output prefix for the logger.
 func (l *Logger) SetPrefix(prefix string) {
 	l.mu.Lock()
@@ -482,45 +492,45 @@ func (l *Logger) SetOutput(w io.Writer) {
 
 // SetOutput sets the output destination for the standard logger.
 func SetOutput(w io.Writer) {
-	Std.SetOutput(w)
+	std.SetOutput(w)
 }
 
 func SetLocation(loc *time.Location) {
-	Std.SetLocation(loc)
+	std.SetLocation(loc)
 }
 
 func Location() *time.Location {
-	return Std.Location()
+	return std.Location()
 }
 
 // Flags returns the output flags for the standard logger.
 func Flags() int {
-	return Std.Flags()
+	return std.Flags()
 }
 
 // SetFlags sets the output flags for the standard logger.
 func SetFlags(flag int) {
-	Std.SetFlags(flag)
+	std.SetFlags(flag)
 }
 
 // Prefix returns the output prefix for the standard logger.
 func Prefix() string {
-	return Std.Prefix()
+	return std.Prefix()
 }
 
 // SetPrefix sets the output prefix for the standard logger.
 func SetPrefix(prefix string) {
-	Std.SetPrefix(prefix)
+	std.SetPrefix(prefix)
 }
 
 // SetOutputLevel sets the output log level for the standard logger.
 func SetOutputLevel(lvl int) {
-	Std.SetOutputLevel(lvl)
+	std.SetOutputLevel(lvl)
 }
 
 // OutputLevel returns the output log level for the standard logger.
 func OutputLevel() int {
-	return Std.OutputLevel()
+	return std.OutputLevel()
 }
 
 // -----------------------------------------
@@ -528,99 +538,99 @@ func OutputLevel() int {
 // Print calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Print.
 func Print(v ...interface{}) {
-	Std.Print(v...)
+	std.Print(v...)
 }
 
 // Printf calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Printf.
 func Printf(format string, v ...interface{}) {
-	Std.Printf(format, v...)
+	std.Printf(format, v...)
 }
 
 // Println calls Output to print to the standard logger.
 // Arguments are handled in the manner of fmt.Println.
 func Println(v ...interface{}) {
-	Std.Println(v...)
+	std.Println(v...)
 }
 
 // -----------------------------------------
 
 func Debugf(format string, v ...interface{}) {
-	Std.Debugf(format, v...)
+	std.Debugf(format, v...)
 }
 
 func Debug(v ...interface{}) {
-	Std.Debug(v...)
+	std.Debug(v...)
 }
 
 // -----------------------------------------
 
 func Infof(format string, v ...interface{}) {
-	Std.Infof(format, v...)
+	std.Infof(format, v...)
 }
 
 func Info(v ...interface{}) {
-	Std.Info(v...)
+	std.Info(v...)
 }
 
 // -----------------------------------------
 
 func Warnf(format string, v ...interface{}) {
-	Std.Warnf(format, v...)
+	std.Warnf(format, v...)
 }
 
 func Warn(v ...interface{}) {
-	Std.Warn(v...)
+	std.Warn(v...)
 }
 
 // -----------------------------------------
 
 func Errorf(format string, v ...interface{}) {
-	Std.Errorf(format, v...)
+	std.Errorf(format, v...)
 }
 
 func Error(v ...interface{}) {
-	Std.Error(v...)
+	std.Error(v...)
 }
 
 // -----------------------------------------
 
 // Fatal is equivalent to Print() followed by a call to os.Exit(1).
 func Fatal(v ...interface{}) {
-	Std.Fatal(v...)
+	std.Fatal(v...)
 }
 
 // Fatalln is equivalent to Println() followed by a call to os.Exit(1).
 func Fatalln(v ...interface{}) {
-	Std.Fatalln(v...)
+	std.Fatalln(v...)
 }
 
 // Fatalf is equivalent to Printf() followed by a call to os.Exit(1).
 func Fatalf(format string, v ...interface{}) {
-	Std.Fatalf(format, v...)
+	std.Fatalf(format, v...)
 }
 
 // -----------------------------------------
 
 // Panic is equivalent to Print() followed by a call to panic().
 func Panic(v ...interface{}) {
-	Std.Panic(v...)
+	std.Panic(v...)
 }
 
 // Panicln is equivalent to Println() followed by a call to panic().
 func Panicln(v ...interface{}) {
-	Std.Panicln(v...)
+	std.Panicln(v...)
 }
 
 // Panicf is equivalent to Printf() followed by a call to panic().
 func Panicf(format string, v ...interface{}) {
-	Std.Panicf(format, v...)
+	std.Panicf(format, v...)
 }
 
 // -----------------------------------------
 
 func Stack(v ...interface{}) {
-	Std.Stack(v...)
+	std.Stack(v...)
 }
 
 // -----------------------------------------
